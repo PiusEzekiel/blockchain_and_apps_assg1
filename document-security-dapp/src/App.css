@@ -1,38 +1,178 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+/* Global Styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #4b6cb7, #182848);
   color: white;
+  text-align: center;
+  margin: 0;
+  padding: 0;
 }
 
-.App-link {
-  color: #61dafb;
+/* App Container */
+.app-container {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+  animation: fadeIn 0.6s ease-in-out;
 }
 
-@keyframes App-logo-spin {
+/* Wallet Section */
+.wallet-section {
+  margin-bottom: 20px;
+}
+
+/* Connect Wallet Button */
+.connect-button {
+  background: linear-gradient(135deg, #007bff, #00c6ff);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.4);
+}
+
+.connect-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 15px rgba(0, 123, 255, 0.5);
+}
+
+/* Status Message */
+.status-message {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Card Styles (Glassmorphism) */
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.1);
+  /* backdrop-filter: blur(10px); */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  margin: 20px auto;
+  max-width: 550px;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+/* Input Fields */
+.input-field,
+.file-input {
+  width: 90%;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: 0.3s;
+}
+
+/* Change placeholder text color */
+.input-field::placeholder,
+.file-input::placeholder {
+    color: rgba(255, 255, 255, 0.6); /* Light grayish white */
+    font-style: italic;
+}
+
+/* Optional: Change color on focus */
+.input-field:focus::placeholder,
+.file-input:focus::placeholder {
+    color: rgba(255, 255, 255, 0.3); /* Even lighter when focused */
+}
+
+
+.input-field:focus,
+.file-input:focus {
+  border-color: #00c6ff;
+  box-shadow: 0px 0px 10px rgba(0, 198, 255, 0.2);
+}
+
+/* Action Buttons */
+.action-button {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0px 4px 10px rgba(40, 167, 69, 0.4);
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 15px rgba(40, 167, 69, 0.5);
+}
+
+/* Copy Icon */
+.copy-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 18px;
+  color: #20c997;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.copy-icon:hover {
+  transform: scale(1.2);
+  color: #17a2b8;
+}
+
+/* Info Box (Success) */
+.info-box {
+  /* background: linear-gradient(105deg, #28a745, #20c997);
+  background-color: #20c997; */
+  background-color: rgba(40, 167, 69, 0.15);
+  /* background-color: #dff0d8; */
+  border: 1px solid #28a745;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+/* Info Box (Success) */
+.info-box.success {
+  background-color: rgba(40, 167, 69, 0.15);
+  background-color: #dff0d8;
+  border-left: 5px solid #28a745;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+/* Info Box (Error) */
+.info-box.error {
+  background-color: rgba(220, 53, 69, 0.15);
+  border-left: 5px solid #dc3545;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+/* Animations */
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+      opacity: 0;
+      transform: translateY(10px);
   }
   to {
-    transform: rotate(360deg);
+      opacity: 1;
+      transform: translateY(0);
   }
 }
