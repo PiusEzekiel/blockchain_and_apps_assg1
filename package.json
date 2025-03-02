@@ -36,6 +36,8 @@
 
     "react-helmet": "^6.1.0",
 
+    "react-scripts": "^5.0.1",
+
     "react-toastify": "^11.0.5",
 
     "web3": "^4.16.0"
