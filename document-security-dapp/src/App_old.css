@@ -1,0 +1,385 @@
+/* Global Styles */
+html, body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #4b6cb7, #182848);
+  color: white;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;  /* Ensures it covers the full viewport height */
+  display: flex;
+  flex-direction: column;;
+}
+
+/* Content Wrapper to Push Footer to Bottom */
+.app-wrapper {
+  /* flex: 1; Allows content to expand while keeping footer at the bottom */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers content vertically */
+}
+
+/* Header Section */
+header {
+  /* display: flex; */
+  height: 60px; /* Ensure header has a fixed height */
+  justify-content: space-between; /* Moves elements to opposite ends */
+  align-items: center; /* Ensures vertical alignment */
+  padding: 15px 50px; /* Adds spacing from edges */
+  background: linear-gradient(135deg, #007bff, #00c6ff);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 5px ;
+  width: 100%;
+  position: fixed; /* Keeps it at the top */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* Ensures it stays above other content */
+}
+
+/* Footer Section */
+.footer {
+  text-align: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  position: relative;
+  bottom: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin-top: auto; /* Pushes the footer to the bottom */
+}
+
+
+
+/* App Container */
+.app-container {
+  max-width: 850x;
+  margin-top: 90px; /* Push content down below header */
+  margin-bottom: 120px;
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh; /* Ensure it fills the screen */
+}
+
+
+
+/* Wallet Section */
+/* .wallet-section {
+  margin-bottom: 20px;
+} */
+
+/* Connect Wallet Button */
+.connect-button {
+  background: linear-gradient(135deg, #007bff, #00c6ff);
+  color: white;
+  border: 1px solid white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.4);
+}
+
+.connect-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 15px rgba(0, 123, 255, 0.5);
+}
+
+/* Status Message */
+.status-message {
+  /* margin-top: 20px; */
+  font-weight: bold;
+  font-size: 14px;
+}
+
+
+/* 🔹 Tabs Section */
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  /* gap: 10px; */
+  /* margin-bottom: 20px; */
+  width: 100%; /* Ensures full width */
+  max-width: 850px; /* Matches .app-container */
+  /* margin: 20px 20px 20px 20px; */
+  /* margin-left: auto;
+  margin-right: auto; */
+}
+
+.tab-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 10px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
+  transition: 0.3s;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.tab-button.active {
+  background: #28a745;
+  color: white;
+  font-weight: bold;
+}
+
+
+/* Card Styles (Glassmorphism) */
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* margin: 20px 20px 20px 20px; Centers the card */
+  width: 100%; /* Makes the card take full width */
+  max-width: 850px; /* Ensures it matches the container width */
+  transition: 0.3s;
+}
+.card:hover {
+  transform: scale(1.03);
+}
+
+/* Input Fields */
+.input-field,
+.file-input {
+  width: 90%;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: 0.3s;
+}
+
+/* placeholder text color */
+.input-field::placeholder,
+.file-input::placeholder {
+    color: rgba(255, 255, 255, 0.6); /* Light grayish white */
+    font-style: italic;
+}
+
+/* Highlighter color on focus */
+.input-field:focus::placeholder,
+.file-input:focus::placeholder {
+    color: rgba(255, 255, 255, 0.3); 
+}
+
+/* Even lighter when focused */
+.input-field:focus,
+.file-input:focus {
+  border-color: #00c6ff;
+  box-shadow: 0px 0px 10px rgba(0, 198, 255, 0.2);
+}
+
+/* Action Buttons */
+.action-button {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0px 4px 10px rgba(40, 167, 69, 0.4);
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 15px rgba(40, 167, 69, 0.5);
+}
+
+/* Copy Icon */
+.copy-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 18px;
+  color: #20c997;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.copy-icon:hover {
+  transform: scale(1.2);
+  color: #17a2b8;
+}
+
+/* Info Box (Success) */
+.info-box {
+  background-color: rgba(40, 167, 69, 0.15);
+  border: 1px solid #28a745;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 15px;
+  font-size: 14px;
+}
+
+/* Fades out after a delay */
+.info-box.hidden {
+  opacity: 0;
+}
+
+/* Info Box (Success) */
+.info-box.success {
+  background-color: rgba(40, 167, 69, 0.15);
+  border: 1px solid #28a745;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+/* Info Box (Error) */
+.info-box.error {
+  background-color: rgba(220, 53, 69, 0.15);
+  border: 1px solid #dc3545;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+/* Document List Styling */
+.document-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 500px; /* Prevent excessive height */
+  overflow-y: auto;  /* Enable scrolling if too many documents */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Adds spacing between list items */
+}
+
+/* Document Items */
+.document-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap; /* Ensures elements wrap properly */
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease-in-out;
+  word-wrap: break-word; /* Ensure long words break properly */
+}
+
+.document-item:hover {
+  transform: scale(1.02);
+}
+
+/* Ensuring proper text formatting */
+.document-item p {
+  font-size: 12px;
+  margin: 4px 0;
+  text-align: left;
+  word-break: break-word; /* Ensures long text wraps */
+}
+
+/* Hash and owner should be on separate lines for better readability */
+.document-item b {
+  /* display: block; */
+  font-size: 12px;
+  color: #ffffff;
+  text-align: left;
+}
+
+
+/* Footer Section */
+.footer {
+  text-align: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  position: relative;
+  bottom: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin-top: auto; /* Pushes the footer to the bottom */
+}
+
+/* Footer Links */
+.footer a {
+  color: #00c6ff;
+  text-decoration: none;
+  font-weight: bold;
+  margin: 0 5px;
+  transition: color 0.3s ease-in-out;
+}
+
+.footer a:hover {
+  color: #fff;
+}
+
+/* Disclaimer */
+.disclaimer {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+
+/* 📱 Responsive Design */
+@media (max-width: 768px) {
+  .app-container {
+    max-width: 95%;
+    padding: 15px;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+
+  .connect-button,
+  .action-button {
+    width: 100%;
+    padding: 14px;
+  }
+  .document-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .document-item p {
+    font-size: 12px;
+  }
+
+  .copy-icon {
+    font-size: 14px;
+  }
+  
+}
+
+/* 🔹 Fade-In Effect */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}

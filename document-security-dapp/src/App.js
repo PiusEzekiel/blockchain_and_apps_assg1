@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import CryptoJS from "crypto-js";
 import { toast } from "react-toastify";
@@ -10,11 +9,9 @@ import { FaRegCopy } from "react-icons/fa"; // Import the copy icon
 const contractABI = require("./DocumentRegistryABI.json");
 const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS; // Contract address from .env
 
-
-
-
 function App() {
     const [account, setAccount] = useState("");
+    const [activeTab, setActiveTab] = useState("register"); // Controls which card is visible
     const [documentHash, setDocumentHash] = useState("");
     const [status, setStatus] = useState("");
     const [file, setFile] = useState(null);
@@ -23,21 +20,34 @@ function App() {
     const [hash, setHash] = useState("");
     const [documentInfo, setDocumentInfo] = useState(null);
     const [loadingVerify, setLoadingVerify] = useState(false);
-    const [registeredDocument, setRegisteredDocument] = useState(null); // ✅ New state for registration success
+    const [registeredDocuments, setRegisteredDocuments] = useState([]); // Initialize as an empty array
+    const [transferTo, setTransferTo] = useState("");
+    const [showInfoBox, setShowInfoBox] = useState(false);
+    const [statusType, setStatusType] = useState(""); // Add this new state
 
-
-    
+    const updateStatus = (message, type = "") => {
+        setStatus(message);
+        setStatusType(type);
+        // Auto-clear status after 5 seconds
+        setTimeout(() => {
+            setStatus("");
+            setStatusType("");
+        }, 10000);
+    };
 
     // Connect to MetaMask
     const connectWallet = async () => {
         if (window.ethereum) {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            setAccount(await signer.getAddress());
-            setStatus("✅ Wallet Connected");
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                setAccount(await signer.getAddress());
+                updateStatus("✅ Wallet Connected", "success");
+            } catch (error) {
+                updateStatus("❌ Failed to connect wallet: " + error.message, "error");
+            }
         } else {
-            toast.error("❌ MetaMask not detected");
-            setStatus("❌ Please install MetaMask.");
+            updateStatus("❌ MetaMask not detected", "error");
         }
     };
 
@@ -46,239 +56,354 @@ function App() {
         setFile(event.target.files[0]);
     };
 
-  // 🔹 Hash document for registration
-  const hashDocument = async () => {
-    setStatus("🔄 Preparing to register document...");
-    if (!file) {
-        toast.error("❌ Please upload a file");
-        setStatus("❌ No file selected. Upload a document first.");
-        return;
-    }
+    // 🔹 Hash document for registration
+    const hashDocument = async () => {
+        setStatus("🔄 Preparing to register document...");
+        if (!file) {
+            toast.error("❌ Please upload a file");
+            setStatus("❌ No file selected. Upload a document first.", "error");
+            return;
+        }
 
-    setStatus("🔄 Generating document hash...");
-    const nonce = uuidv4(); // Generate a unique nonce
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
-        setStatus("🔄 Hashing document...");
-        const combinedData = e.target.result + metadata + nonce;
-        const wordArray = CryptoJS.lib.WordArray.create(combinedData);
-        const hash = CryptoJS.SHA256(wordArray).toString();
-        
-        setDocumentHash(hash);  // Store hash in state
-        setStatus(`✅ Hash generated: ${hash}`);
+        setStatus("🔄 Generating document hash...");
+        const nonce = uuidv4(); // Generate a unique nonce
+        const reader = new FileReader();
 
-        await registerDocument(hash); // Proceed to register document
+        reader.onload = async (e) => {
+            setStatus("🔄 Hashing document...");
+            const combinedData = e.target.result + metadata + nonce;
+            const wordArray = CryptoJS.lib.WordArray.create(combinedData);
+            const hash = CryptoJS.SHA256(wordArray).toString();
+
+            setDocumentHash(hash);  // Store hash in state
+            setStatus(`✅ Hash generated: ${hash}`);
+
+            await registerDocument(hash); // Proceed to register document
+        };
+
+        reader.onerror = (error) => {
+            toast.error("❌ Error reading file");
+            setStatus("❌ Error reading file. Try again.", "success");
+        };
+
+        reader.readAsArrayBuffer(file);
     };
 
-    reader.onerror = (error) => {
-        toast.error("❌ Error reading file");
-        setStatus("❌ Error reading file. Try again.");
+    // 🔹 Copy Hash to Clipboard
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                setStatus("✅ Hash Copied to clipboard!", "success");
+                toast.success("📋 Copied to clipboard!");
+            })
+            .catch((err) => {
+                setStatus("❌ Copy failed", "error");
+                toast.error("❌ Failed to copy");
+                console.error("Copy failed:", err);
+            });
     };
 
-    reader.readAsArrayBuffer(file);
-};
+    // 🔹 Register document on blockchain
+    const registerDocument = async (hash) => {
+        if (!window.ethereum) {
+            updateStatus("❌ MetaMask not detected", "error");
+            return;
+        }
 
- // 🔹 Copy Hash to Clipboard
- const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-        .then(() => {
-            setStatus("✅ Hash Copied to clipboard!");
-            toast.success("📋 Copied to clipboard!");
-        })
-        .catch((err) => {
-            setStatus("❌ Copy failed");
-            toast.error("❌ Failed to copy");
-            console.error("Copy failed:", err);
-        });
-};
+        try {
+            setLoadingRegister(true);
+            updateStatus("🔄 Processing transaction...");
 
-// 🔹 Register document on blockchain
-const registerDocument = async (hash) => {
-  setStatus("🔄 Connecting to MetaMask...");
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-  if (!window.ethereum) {
-      toast.error("❌ MetaMask is not installed");
-      setStatus("❌ MetaMask not detected. Please install it.");
-      return;
-  }
+            const tx = await contract.registerDocument(hash, metadata);
+            await tx.wait();
 
-  if (!contractAddress) {
-      toast.error("❌ Smart contract address is missing!");
-      setStatus("❌ Contract address is undefined. Check your .env file.");
-      return;
-  }
+            updateStatus("✅ Document registered successfully!", "success");
+            setShowInfoBox(true);
+            
+            // Refresh the documents list
+            await fetchRegisteredDocuments();
 
-  try {
-      setLoadingRegister(true);
-      setStatus("🔄 Connecting to blockchain...");
-      
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const walletAddress = await signer.getAddress();
-      
-      setStatus(`✅ Connected to wallet: ${walletAddress}`);
+        } catch (error) {
+            updateStatus("❌ Registration failed: " + error.message, "error");
+        } finally {
+            setLoadingRegister(false);
+        }
+    };
 
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      setStatus("✅ Smart contract loaded. Preparing transaction...");
+    // 🔹 Verify document on blockchain
+    const verifyDocument = async () => {
+        if (!hash) {
+            updateStatus("❌ Please enter a document hash", "error");
+            return;
+        }
 
-      setStatus("🔄 Sending transaction...");
-      const tx = await contract.registerDocument(hash, metadata);
-      setStatus("🔄 Waiting for transaction confirmation...");
+        try {
+            setLoadingVerify(true);
+            updateStatus("🔄 Verifying document...");
 
-      await tx.wait();
-      const timestamp = new Date().toLocaleString(); // Mock timestamp (blockchain will have actual timestamp)
-            setRegisteredDocument({ hash, metadata, timestamp }); // ✅ Store registered document details
-      //setStatus(`✅ Document registered successfully! Hash: ${hash}`);
-      setStatus(`✅ Document registered successfully!`);
-      toast.success("✅ Document registered on blockchain!");
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
-  } catch (error) {
-      setStatus("❌ Transaction failed. Check MetaMask.");
-      toast.error("❌ Transaction failed. See MetaMask for details.");
-  } finally {
-      setLoadingRegister(false);
-  }
-};
+            const data = await contract.verifyDocument(hash);
+            
+            if (!data || data[0] === ethers.ZeroAddress) {
+                updateStatus("❌ Document not found", "error");
+                setDocumentInfo(null);
+                return;
+            }
 
+            const timestamp = Number(data[1]);
+            setDocumentInfo({
+                owner: data[0],
+                timestamp: new Date(timestamp * 1000).toLocaleString(),
+                metadata: data[2],
+            });
+            updateStatus("✅ Document verified successfully!", "success");
 
+        } catch (error) {
+            updateStatus("❌ Verification failed: " + error.message, "error");
+            setDocumentInfo(null);
+        } finally {
+            setLoadingVerify(false);
+        }
+    };
 
+    // 🔹 Fetch all registered documents for the dashboard
+    const fetchRegisteredDocuments = async () => {
+        if (!window.ethereum) return;
 
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
-// 🔹 Verify document on blockchain
+            const docs = await contract.getAllDocuments(); // Ensure this function exists in your contract
 
-const verifyDocument = async () => {
-  setStatus("🔄 Connecting to MetaMask...");
+            // 🔹 Format Data Properly
+            const formattedDocs = docs.map((doc) => ({
+                hash: doc.hash,
+                owner: doc.owner,
+                metadata: doc.metadata,
+                timestamp: new Date(Number(doc.timestamp) * 1000).toLocaleString() // Convert BigInt
+            }));
 
-  if (!window.ethereum) {
-      toast.error("❌ MetaMask is not installed");
-      setStatus("❌ MetaMask not detected. Please install it.");
-      return;
-  }
+            setRegisteredDocuments(formattedDocs);
+        } catch (error) {
+            console.error("Error fetching documents", error);
+        }
+    };
 
-  try {
-      setLoadingVerify(true);
-      setStatus("🔄 Connecting to blockchain...");
+    // 🔹 Transfer document ownership
+    const transferOwnership = async () => {
+        if (!hash || !transferTo) {
+            updateStatus("❌ Please enter both document hash and new owner address", "error");
+            return;
+        }
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const userAddress = await signer.getAddress(); // Get the user's connected wallet
-      setStatus(`✅ MetaMask connected: ${userAddress}`);
+        try {
+            updateStatus("🔄 Transferring ownership...");
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-      if (!contractAddress) {
-          setStatus("❌ Smart contract address is missing! Check your .env file.");
-          toast.error("❌ Contract address is undefined!");
-          return;
-      }
+            const tx = await contract.transferOwnership(hash, transferTo);
+            await tx.wait();
 
-      const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            updateStatus("✅ Ownership transferred successfully!", "success");
+            await fetchRegisteredDocuments(); // Refresh the documents list
+        } catch (error) {
+            updateStatus("❌ Transfer failed: " + error.message, "error");
+        }
+    };
 
-      setStatus("🔄 Searching for document...");
-      const data = await contract.verifyDocument(hash);
+    useEffect(() => {
+        // Fetch registered documents when the component mounts
+        fetchRegisteredDocuments();
+    }, []);
 
-      if (!data || data[0] === ethers.ZeroAddress) {
-          setStatus("❌ Document not found!");
-          toast.error("❌ Document not found or verification failed");
-          setDocumentInfo(null);
-          return;
-      }
+    // Function to switch tabs
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setStatus(""); // Reset status when switching tabs
+    };
 
-      // ✅ Fix: Convert BigInt timestamp to a regular number
-      const timestamp = Number(data[1]); // Convert BigInt to number
-      const formattedTime = new Date(timestamp * 1000).toLocaleString();
-
-      setDocumentInfo({
-          owner: data[0],
-          timestamp: formattedTime, // Use converted timestamp
-          metadata: data[2],
-      });
-
-      setStatus(`✅ Document found!`);
-      //setStatus(`✅ Document found! Registered by: ${data[0]}`);
-      toast.success("✅ Document verified successfully!");
-
-  } catch (error) {
-      setStatus("❌ Verification failed. See console for details.");
-      console.error("Verification error:", error);
-      toast.error(`❌ Error: ${error.message}`);
-      setDocumentInfo(null);
-  } finally {
-      setLoadingVerify(false);
-  }
-};
-
-
-return (
-    <div className="app-container">
-        <SecurityHeaders />
-        <h2>Document Security DApp</h2>
-
-        {/* 🔹 Wallet Connection Section */}
-        <div className="wallet-section">
-            <button className="connect-button" onClick={connectWallet}>
-                {account
-                    ? `Connected: ${account.substring(0, 6)}...${account.slice(-4)}`
-                    : "Connect Wallet"}
-            </button>
-            <p className="status-message">{status}</p>
-        </div>
-
-        {/* 🔹 Document Registration Section */}
-        <div className="card">
-            <h3>Register Document</h3>
-            <input type="file" onChange={handleFileChange} className="file-input" />
-            <input
-                type="text"
-                placeholder="Enter metadata (e.g., document type, issuer ID)"
-                value={metadata}
-                onChange={(e) => setMetadata(e.target.value)}
-                className="input-field"
-            />
-            <button className="action-button" onClick={hashDocument}  disabled={loadingRegister}>
-                {loadingRegister ? "Processing..." : "Register Document"}
-            </button>
-            {registeredDocument && (
-                <div className="info-box">
-                    <h3>✅ Document registered successfully</h3>
-                    <p><b>Copy Hash For Verification:</b> {registeredDocument.hash}{" "}
-                            <FaRegCopy 
-                                className="copy-icon" 
-                                onClick={() => copyToClipboard(registeredDocument.hash)}
-                                title="Copy Hash"
-                            />
-                        </p>
-                    <p><b>Registered On:</b> {registeredDocument.timestamp}</p>
-                    <p><b>Metadata:</b> {registeredDocument.metadata}</p>
+    return (
+        <div className="app-wrapper">
+            <SecurityHeaders />
+            <header>
+                <h2>Document Security DApp</h2>
+               
+                {/* 🔹 Wallet Connection Section */}
+                <div className="wallet-section">
+                    <button className="connect-button" onClick={connectWallet}>
+                        {account
+                            ? `Connected: ${account.substring(0, 6)}...${account.slice(-4)}`
+                            : "Connect Wallet"}
+                    </button>
                 </div>
-            )}
-        </div>
-
-        {/* 🔹 Document Verification Section */}
-        <div className="card">
-            <h3>Verify Document</h3>
-            <input
-                type="text"
-                placeholder="Enter Document Hash"
-                value={hash}
-                onChange={(e) => setHash(e.target.value)}
-                className="input-field"
-            />
-            <button className="action-button" onClick={verifyDocument} disabled={loadingVerify}>
-                {loadingVerify ? "Checking..." : "Verify Document"}
-            </button>
-
-            {documentInfo && (
-                <div className="info-box">
-                    <h3>✅ Document Found</h3>
-                    <p><b>Owner:</b> {documentInfo.owner}</p>
-                    <p><b>Registered On:</b> {documentInfo.timestamp}</p>
-                    <p><b>Metadata:</b> {documentInfo.metadata}</p>
+            </header>
+            <div>
+                {status && (
+                    <p className={`status-message ${statusType ? `status-${statusType}` : ''}`}>
+                        {status}
+                    </p>
+                )}
+            </div>
+            <div className="app-container">
+                {/* 🔹 Navigation Tabs */}
+                <div className="tabs">
+                    <button
+                        className={`tab-button ${activeTab === "register" ? "active" : ""}`}
+                        onClick={() => handleTabChange("register")}
+                    >
+                        📄 Register Document
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === "verify" ? "active" : ""}`}
+                        onClick={() => handleTabChange("verify")}
+                    >
+                        🔍 Verify Document
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === "dashboard" ? "active" : ""}`}
+                        onClick={() => handleTabChange("dashboard")}
+                    >
+                        📜 View Documents
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === "transfer" ? "active" : ""}`}
+                        onClick={() => handleTabChange("transfer")}
+                    >
+                        🔄 Transfer Ownership
+                    </button>
                 </div>
-            )}
+
+                {/* 🔹 Conditionally Render Cards Based on Active Tab */}
+                {activeTab === "register" && (
+                    <div className="card fade-in">
+                        <h3>Register Document</h3>
+                        <input type="file" onChange={handleFileChange} className="file-input" />
+                        <input
+                            type="text"
+                            placeholder="Enter metadata (e.g., document type, issuer ID)"
+                            value={metadata}
+                            onChange={(e) => setMetadata(e.target.value)}
+                            className="input-field"
+                        />
+                        <button className="action-button" onClick={hashDocument} disabled={loadingRegister}>
+                            {loadingRegister ? "Processing..." : "Register Document"}
+                        </button>
+                        {showInfoBox && registeredDocuments.length > 0 && (
+                            <div className={"info-box fade-in"}>
+                                <h3>✅ Document Registered Successfully</h3>
+                                <p>
+                                    <b>Copy Hash For Verification:</b> {registeredDocuments[registeredDocuments.length - 1].hash}{" "}
+                                    <FaRegCopy
+                                        className="copy-icon"
+                                        onClick={() => copyToClipboard(registeredDocuments[registeredDocuments.length - 1].hash)}
+                                        title="Copy Hash"
+                                    />
+                                </p>
+                                <p><b>Registered On:</b> {registeredDocuments[registeredDocuments.length - 1].timestamp}</p>
+                                <p><b>Metadata:</b> {registeredDocuments[registeredDocuments.length - 1].metadata}</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === "verify" && (
+                    <div className="card fade-in">
+                        <h3>Verify Document</h3>
+                        <input
+                            type="text"
+                            placeholder="Enter Document Hash"
+                            value={hash}
+                            onChange={(e) => setHash(e.target.value)}
+                            className="input-field"
+                        />
+                        <button className="action-button" onClick={verifyDocument} disabled={loadingVerify}>
+                            {loadingVerify ? "Checking..." : "Verify Document"}
+                        </button>
+
+                        {documentInfo && (
+                            <div className="info-box">
+                                <h3>✅ Document Found</h3>
+                                <p><b>Owner:</b> {documentInfo.owner}</p>
+                                <p><b>Registered On:</b> {documentInfo.timestamp}</p>
+                                <p><b>Metadata:</b> {documentInfo.metadata}</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === "dashboard" && (
+                    <div className="card fade-in">
+                        <h3>Registered Documents</h3>
+                        <ul className="document-list">
+                            {registeredDocuments.length > 0 ? (
+                                registeredDocuments.map((doc, index) => (
+                                    <li key={index} className="document-item">
+                                        <div>
+                                            <p><b>Hash:</b> {doc.hash}
+                                                <FaRegCopy
+                                                    className="copy-icon"
+                                                    onClick={() => copyToClipboard(doc.hash)}
+                                                    title="Copy Hash"
+                                                />
+                                            </p>
+                                            <p><b>Owner:</b> {doc.owner}</p>
+                                        </div>
+                                        <div>
+                                            <p><b>Registered On:</b> {doc.timestamp}</p>
+                                            <p><b>Metadata:</b> {doc.metadata || "N/A"}</p>
+                                        </div>
+                                    </li>
+                                ))
+                            ) : (
+                                <li>No registered documents found.</li>
+                            )}
+                        </ul>
+                    </div>
+                )}
+
+                {activeTab === "transfer" && (
+                    <div className="card fade-in">
+                        <h3>Transfer Ownership</h3>
+                        <input
+                            type="text"
+                            placeholder="Enter Document Hash"
+                            value={hash}
+                            onChange={(e) => setHash(e.target.value)}
+                            className="input-field"
+                        />
+                        <input
+                            type="text"
+                            placeholder="New Owner Address"
+                            value={transferTo}
+                            onChange={(e) => setTransferTo(e.target.value)}
+                            className="input-field"
+                        />
+                        <button className="action-button" onClick={() => transferOwnership(hash)}>Transfer Ownership</button>
+                    </div>
+                )}
+            </div>
+
+            <footer className="footer">
+                <p>Document Security DApp &copy; {new Date().getFullYear()}</p>
+                <p>
+                    Built on <strong>Ethereum Blockchain</strong> |
+                    <a href="https://a.com" target="_blank" rel="noopener noreferrer"> GitHub</a> |
+                    <a href="https://a.com" target="_blank" rel="noopener noreferrer"> Docs</a>
+                </p>
+                <p className="disclaimer">
+                    ⚠️ Transactions are irreversible. Always verify document details before proceeding.
+                </p>
+            </footer>
         </div>
-    </div>
-);
+    );
+}
 
-
-};
 export default App;
