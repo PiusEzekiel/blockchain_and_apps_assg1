@@ -7,7 +7,17 @@ import { v4 as uuidv4 } from "uuid"; // Install using: npm install uuid
 import "./App.css"; // Import the CSS file
 import { FaRegCopy } from "react-icons/fa"; // Import the copy icon
 const contractABI = require("./DocumentRegistryABI.json");
-const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS; // Contract address from .env
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+
+// Automatically select the right provider
+const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+const contract = new ethers.Contract(contractAddress, contractABI, provider);
+
+
+// const provider = new ethers.providers.JsonRpcProvider(
+//     `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`
+// );
+
 
 function App() {
     const [account, setAccount] = useState("");
@@ -39,7 +49,8 @@ function App() {
     const connectWallet = async () => {
         if (window.ethereum) {
             try {
-                const provider = new ethers.BrowserProvider(window.ethereum);
+                const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+                // await window.ethereum.request({ method: "eth_requestAccounts" });
                 const signer = await provider.getSigner();
                 setAccount(await signer.getAddress());
                 updateStatus("✅ Wallet Connected", "success");
@@ -114,7 +125,8 @@ function App() {
             setLoadingRegister(true);
             updateStatus("🔄 Processing transaction...");
 
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+
             const signer = await provider.getSigner();
             const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
@@ -145,7 +157,9 @@ function App() {
             setLoadingVerify(true);
             updateStatus("🔄 Verifying document...");
 
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            // const provider = new ethers.BrowserProvider(window.ethereum);
+            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+
             const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
             const data = await contract.verifyDocument(hash);
@@ -177,7 +191,9 @@ function App() {
         if (!window.ethereum) return;
 
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            // const provider = new ethers.BrowserProvider(window.ethereum);
+            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+
             const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
             const docs = await contract.getAllDocuments(); // Ensure this function exists in your contract
@@ -205,7 +221,9 @@ function App() {
 
         try {
             updateStatus("🔄 Transferring ownership...");
-            const provider = new ethers.BrowserProvider(window.ethereum);
+            // const provider = new ethers.BrowserProvider(window.ethereum);
+            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+
             const signer = await provider.getSigner();
             const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
@@ -395,7 +413,7 @@ function App() {
                 <p>Document Security DApp &copy; {new Date().getFullYear()}</p>
                 <p>
                     Built on <strong>Ethereum Blockchain</strong> |
-                    <a href="https://a.com" target="_blank" rel="noopener noreferrer"> GitHub</a> |
+                    <a href="https://github.com/PiusEzekiel/blockchain_and_apps_assg1.git" target="_blank" rel="noopener noreferrer"> GitHub</a> |
                     <a href="https://a.com" target="_blank" rel="noopener noreferrer"> Docs</a>
                 </p>
                 <p className="disclaimer">

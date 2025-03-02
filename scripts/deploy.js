@@ -1,19 +1,16 @@
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function main() {
-  const DocumentRegistry = await hre.ethers.getContractFactory("DocumentRegistry"); // Make sure the contract name matches your Solidity file
+    const [deployer] = await ethers.getSigners();
+    console.log("Deploying contract with address:", deployer.address);
 
-  console.log("Deploying contract...");
+    const Contract = await ethers.getContractFactory("DocumentRegistry");
+    const contract = await Contract.deploy();
 
-  const documentRegistry = await DocumentRegistry.deploy(); // Deploy the contract
-  await documentRegistry.waitForDeployment(); // Instead of .deployed()
-
-  console.log(`Contract deployed to: ${await documentRegistry.getAddress()}`); // Get contract address
+    console.log("Contract deployed to:", await contract.getAddress());
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
+main().catch((error) => {
     console.error(error);
-    process.exit(1);
-  });
+    process.exitCode = 1;
+});
