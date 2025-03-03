@@ -3,7 +3,7 @@ html, body {
   font-family: 'Poppins', sans-serif;
   background: linear-gradient(135deg, #4b6cb7, #182848);
   /* background-size: 300% 300%; Larger background for smooth animation */
-  animation: backgroundAnimation 20s ease-in-out infinite alternate; /* Animation */
+  animation: backgroundAnimation 25s ease-in-out infinite alternate; /* Animation */
   color: white;
   text-align: center;
   margin: 0;
@@ -18,7 +18,7 @@ html, body {
 @keyframes backgroundAnimation {
   0% {
     background-position: 0% 25%;
-    background: linear-gradient(135deg, #091530, #182848);
+    background: linear-gradient(15deg, #091530, #182848);
   }
   25% {
     background-position: 25% 50%;
@@ -108,7 +108,7 @@ header h2 {
 .status-success {
   background-color: rgba(40, 167, 69, 0.9);
   color: white;
-  border: 1px solid #28a745;
+  border: 1px solid #007bff;
 }
 
 .status-error {
@@ -191,7 +191,7 @@ header h2 {
   }
   
   .tab-button.active {
-    background: #28a745;
+    background: linear-gradient(135deg, #4a90e2, #007bff);
     font-weight: bold;
   }
   
@@ -242,28 +242,28 @@ header h2 {
 
   /* Action Buttons */
 .action-button {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, #4a90e2, #007bff);
   /* background: linear-gradient(135deg, #28a745, #00c6ff); */
   color: white;
   border: none;
   padding: 12px 18px;
   font-size: 16px;
   font-weight: bold;
-  border-radius: 50px;
+  border-radius: 8px;
   cursor: pointer;
   transition: transform 0.3s, box-shadow 0.3s;
-  box-shadow: 0px 4px 10px rgba(40, 167, 69, 0.4);
+  box-shadow: 0px 4px 8px rgba(74, 144, 226, 0.4);
 }
 
 .action-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0px 6px 15px rgba(40, 167, 69, 0.5);
+  box-shadow: 0px 4px 8px rgba(74, 144, 226, 0.6);
 }
   
 /* Info Box (Success) */
 .info-box {
   background: rgba(0, 0, 0, 0.1); /* Modern semi-transparent black */
-  border: 1px solid #28a745;
+  border: 1px solid #007bff;
   padding: 12px;
   border-radius: 8px;
   margin: 15px;
@@ -278,7 +278,7 @@ header h2 {
 /* Info Box (Success) */
 .info-box.success {
   background-color: rgba(40, 167, 69, 0.15);
-  border: 1px solid #28a745;
+  border: 1px solid #007bff;
   padding: 12px;
   border-radius: 8px;
   margin-top: 15px;
@@ -346,13 +346,14 @@ header h2 {
     cursor: pointer;
     margin-left: 10px;
     font-size: 18px;
-    color: #28a745;
+    color: #00c6ff;
+    
     transition: transform 0.2s, color 0.2s;
   }
   
   .copy-icon:hover {
     transform: scale(1.2);
-    color: #00c6ff;
+    color: #007bff;
   }
   
   /* 📌 Footer */
