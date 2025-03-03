@@ -10,9 +10,9 @@ const contractABI = require("./DocumentRegistryABI.json");
 const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 
 // Automatically select the right provider
-const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
-const contract = new ethers.Contract(contractAddress, contractABI, provider);
-
+const readProvider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+// Function to get a provider for transactions (MetaMask)
 
 // const provider = new ethers.providers.JsonRpcProvider(
 //     `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`
@@ -35,6 +35,23 @@ function App() {
     const [showInfoBox, setShowInfoBox] = useState(false);
     const [statusType, setStatusType] = useState(""); // Add this new state
 
+    // Function to get a provider for transactions (MetaMask)
+// ✅ Function to get a provider for transactions (MetaMask)
+const getSigner = async () => {
+    if (!window.ethereum) {
+        throw new Error("MetaMask is not installed");
+    }
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    // ✅ Ensure wallet is connected to Ethereum Mainnet
+    // const network = await provider.getNetwork();
+    // if (network.chainId !== 1) {  // Chain ID for Ethereum Mainnet
+    //     throw new Error("Please switch to Ethereum Mainnet in MetaMask");
+    // }
+
+    return signer;
+};
     const updateStatus = (message, type = "") => {
         setStatus(message);
         setStatusType(type);
@@ -47,20 +64,27 @@ function App() {
 
     // Connect to MetaMask
     const connectWallet = async () => {
-        if (window.ethereum) {
-            try {
-                const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
-                // await window.ethereum.request({ method: "eth_requestAccounts" });
-                const signer = await provider.getSigner();
-                setAccount(await signer.getAddress());
-                updateStatus("✅ Wallet Connected", "success");
-            } catch (error) {
-                updateStatus("❌ Failed to connect wallet: " + error.message, "error");
-            }
-        } else {
+        if (!window.ethereum) {
             updateStatus("❌ MetaMask not detected", "error");
+            return;
+        }
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const address = await signer.getAddress();
+            setAccount(address);
+
+        // ✅ Check Network (Ensure Mainnet)
+        // const network = await provider.getNetwork();
+        // if (network.chainId !== 1) {  // Chain ID for Ethereum Mainnet
+        //     throw new Error("⚠️ Wrong network! Switch to Ethereum Mainnet in MetaMask.");
+        // }
+            updateStatus(`✅ Wallet Connected: ${address}`, "success");
+        } catch (error) {
+            updateStatus("❌ Failed to connect wallet: " + error.message, "error");
         }
     };
+    
 
     // Handle file selection
     const handleFileChange = (event) => {
@@ -125,12 +149,10 @@ function App() {
             setLoadingRegister(true);
             updateStatus("🔄 Processing transaction...");
 
-            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
-
-            const signer = await provider.getSigner();
-            const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-            const tx = await contract.registerDocument(hash, metadata);
+            const signer = await getSigner(); // ✅ Ensure Mainnet Connection
+            const contractWithSigner = new ethers.Contract(contractAddress, contractABI, signer);
+    
+            const tx = await contractWithSigner.registerDocument(hash, metadata);
             await tx.wait();
 
             updateStatus("✅ Document registered successfully!", "success");
@@ -158,11 +180,10 @@ function App() {
             updateStatus("🔄 Verifying document...");
 
             // const provider = new ethers.BrowserProvider(window.ethereum);
-            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+            // const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
 
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-
-            const data = await contract.verifyDocument(hash);
+            const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+        const data = await contract.verifyDocument(hash);
             
             if (!data || data[0] === ethers.ZeroAddress) {
                 updateStatus("❌ Document not found", "error");
@@ -191,12 +212,8 @@ function App() {
         if (!window.ethereum) return;
 
         try {
-            // const provider = new ethers.BrowserProvider(window.ethereum);
-            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
-
-            const contract = new ethers.Contract(contractAddress, contractABI, provider);
-
-            const docs = await contract.getAllDocuments(); // Ensure this function exists in your contract
+            const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+        const docs = await contract.getAllDocuments(); // // Ensure this function exists in your contract
 
             // 🔹 Format Data Properly
             const formattedDocs = docs.map((doc) => ({
@@ -222,13 +239,11 @@ function App() {
         try {
             updateStatus("🔄 Transferring ownership...");
             // const provider = new ethers.BrowserProvider(window.ethereum);
-            const provider = new ethers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC_URL);
+            const signer = await getSigner();
+        const contractWithSigner = new ethers.Contract(contractAddress, contractABI, signer);
 
-            const signer = await provider.getSigner();
-            const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-            const tx = await contract.transferOwnership(hash, transferTo);
-            await tx.wait();
+        const tx = await contractWithSigner.transferOwnership(hash, transferTo);
+        await tx.wait();
 
             updateStatus("✅ Ownership transferred successfully!", "success");
             await fetchRegisteredDocuments(); // Refresh the documents list
