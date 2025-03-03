@@ -30,7 +30,7 @@ This project enables users to register, verify, and transfer ownership of digita
 
 ### 📌 Live Deployment
 - **Smart Contract Address:** `0xff64838b280D7Aec98C2B8dcf59767Ee00789D6F`
-- **Frontend Hosted (Optional):** [https://docusecure-keia.onrender.com](https://docusecure-keia.onrender.com)
+- **Frontend Hosted (Optional):** [https://docsecure-1n8k.onrender.com/](https://docsecure-1n8k.onrender.com/)
 
 ---
 
