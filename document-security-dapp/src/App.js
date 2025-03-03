@@ -6,6 +6,7 @@ import SecurityHeaders from "./SecurityHeaders"; // Import the SecurityHeaders c
 import { v4 as uuidv4 } from "uuid"; // Install using: npm install uuid
 import "./App.css"; // Import the CSS file
 import { FaRegCopy } from "react-icons/fa"; // Import the copy icon
+
 const contractABI = require("./DocumentRegistryABI.json");
 const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
 
